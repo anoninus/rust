@@ -1,57 +1,55 @@
-use crate::create;
+use crate::serialize_json;
+use clap::{Parser, Subcommand};
+use std::{error::Error};
 
-enum Command {
-    Greet(String)
+#[derive(Parser)]
+#[command(
+    name = "ledgerly",
+    about = "the ledger taking app",
+    long_about = None,
+)]
+struct Cli {
+    #[command(subcommand)]
+    commands: Commands,
 }
 
-pub fn greet(arg_in: &[String]) {
-    let arg_2 = arg_in.get(2);
-    let tip = "\n   Usage:      \nledgerly help";
-    if arg_2.is_none() {
-        println!("Hello, from Ledgerly!{tip}");
-    } else {
-        println!("Ledgerly greets {}", arg_in[2]);
-    }
+#[derive(Subcommand)]
+enum Commands {
+    /// Used for greeting someone.
+    Greet {
+        name: Option<String>,
+    },
+    /// A add command
+    Add {
+        text: Vec<String>,
+    },
+    Create,
 }
 
-pub fn add(arg_in: &[String]) -> std::io::Result<()> {
-    let arg_2 = arg_in.get(2);
-    if arg_2.is_none() {
-        return Err(std::io::Error::new(
-            std::io::ErrorKind::InvalidInput,
-            "Hint : Input something after add argument.",
-        ));
-    } else {
-        let to_add = arg_in[2..].join(" ");
-        let prompt: &str = &to_add;
-        create::create_dir_()?;
-        let path = create::file_name_check()?;
-        let path_str: &str = &path;
+pub fn parse_command() -> Result<(), Box<dyn Error>> {
+    let cli = Cli::parse();
 
-        if std::path::Path::new(&path).exists() {
-            create::file_exists_in_path(path_str, prompt)?;
-        } else {
-            std::fs::write(&path, prompt)?;
+    match cli.commands {
+        Commands::Greet { name } => match name {
+            Some(n) => println!("Ledgerly greets {n}"),
+            None => println!("Hello, from Ledgerly!\n\nUsage:\nledgerly help"),
+        },
+
+        Commands::Add { text } => {
+            if text.is_empty() {
+                return Err(Box::new(std::io::Error::new(
+                    std::io::ErrorKind::InvalidInput,
+                    "Hint: Input something after add argument.",
+                )));
+            }
+
+            let log = text.join(" ");
+            serialize_json::initialization(log)?;
+        }
+        Commands::Create => {
+            let path = format!("leaderly/{}-{}",chrono::Local::now().format("%B"), chrono::Local::now().format("%y"));
+            std::fs::create_dir_all(path)?;
         }
     }
-
     Ok(())
-}
-
-pub fn help() {
-    println!(
-        r#"
-        Usage : ledgerly <cmd>
-        Where cmd is :
-        
-        1. add               --> ro add a value
-        2. sum               --> for summarize.
-        3. help              --> for help.
-        4. greet             --> for greeting.
-        5. since DD-MM-YY    --> to see from a time.
-        6. today             --> to see today's ledger.
-        7. yesterday         --> to see yesterday ledger.
-        8. week              --> to see past 7 day ledger.
-    "#
-    )
 }

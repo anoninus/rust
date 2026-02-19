@@ -1,33 +1,22 @@
 mod command;
 mod create;
+mod serialize_json;
 
 use std::{
-    env::{self},
-    io::Result,
+    env::{self}, error::Error
 };
 
 // prototype code
-fn main() -> Result<()> {
+fn main() -> std::result::Result<(), Box<dyn Error>>{
     let args: Vec<String> = env::args().collect();
 
     // if argument is less than 2 then print help
     if args.len() < 2 {
-        crate::command::help();
+        crate::command::parse_command()?;
         return Ok(());
     }
 
-    // argument 2 is always sub command
-    let sub_command = &args[1];
-
-    // used as_string as we can't match directly on String/&String
-    match sub_command.as_str() {
-        "greet" => crate::command::greet(&args),
-        "add" => crate::command::add(&args)?,
-        "help" => crate::command::help(),
-        _ => println!("Diffrent arg")
-    }
-    
-    
+    command::parse_command()?;
     
     Ok(())
 }
