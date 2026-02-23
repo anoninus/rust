@@ -1,6 +1,7 @@
-use crate::serialize_json;
-use clap::{Parser, Subcommand};
-use std::{error::Error};
+use crate::cmds::{add, greet};
+use crate::cmds::{show, createdir};
+use std::{error::Error, path::PathBuf};
+use clap::{Args, Parser, Subcommand};
 
 #[derive(Parser)]
 #[command(
@@ -16,40 +17,50 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     /// Used for greeting someone.
-    Greet {
-        name: Option<String>,
-    },
+    Greet { name: Option<String> },
     /// A add command
-    Add {
-        text: Vec<String>,
-    },
-    Create,
+    Add { text: Vec<String> },
+    /// Create dir
+    #[command(alias = "c")]
+    Create(CreateArgs),
+
+    #[command(alias = "sh")]
+    Show(ShowArgs),
+}
+
+#[derive(Args)]
+pub struct CreateArgs {
+    #[arg(short, long)]
+    pub at: Option<PathBuf>,
+
+    pub keyword: Option<String>,
+    pub path: Option<PathBuf>,
+}
+
+#[derive(Args)]
+pub struct ShowArgs {
+    #[arg(short, long)]
+    pub today: bool,
 }
 
 pub fn parse_command() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
 
     match cli.commands {
-        Commands::Greet { name } => match name {
-            Some(n) => println!("Ledgerly greets {n}"),
-            None => println!("Hello, from Ledgerly!\n\nUsage:\nledgerly help"),
-        },
+        Commands::Greet { name } => {
+            greet::logic_greet(name);
+        }
 
         Commands::Add { text } => {
-            if text.is_empty() {
-                return Err(Box::new(std::io::Error::new(
-                    std::io::ErrorKind::InvalidInput,
-                    "Hint: Input something after add argument.",
-                )));
-            }
-
-            let log = text.join(" ");
-            serialize_json::initialization(log)?;
+            add::logic_add(text)?;
         }
-        Commands::Create => {
-            let path = format!("leaderly/{}-{}",chrono::Local::now().format("%B"), chrono::Local::now().format("%y"));
-            std::fs::create_dir_all(path)?;
+        Commands::Create(args) => {
+            createdir::logic_create(args)?;
+        }
+        Commands::Show(args) => {
+            show::logic_show(args)?;
         }
     }
     Ok(())
 }
+

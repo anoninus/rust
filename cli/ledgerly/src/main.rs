@@ -1,6 +1,7 @@
 mod command;
-mod create;
+mod cmds;
 mod serialize_json;
+mod models;
 
 use std::{
     env::{self}, error::Error

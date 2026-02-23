@@ -15,12 +15,16 @@ pub fn initialization(data: String) -> Result<(), Box<dyn std::error::Error>> {
         data,
     };
 
-    let path = format!(
-        "./ledgerly/{}-{}-{}.json",
+    let dir = std::path::Path::new("./ledgerly");
+    std::fs::create_dir_all(dir)?;
+
+
+    let path = dir.join(format!(
+        "{}-{}-{}.json",
         chrono::Local::now().day(),
         chrono::Local::now().format("%b"),
         chrono::Local::now().format("%y"),
-    );
+    ));
 
     let mut file = std::fs::OpenOptions::new()
         .append(true)
