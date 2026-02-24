@@ -25,7 +25,10 @@ enum Commands {
     Create(CreateArgs),
 
     #[command(alias = "sh")]
-    Show(ShowArgs),
+    Show{
+        #[command(subcommand)]
+        command: ShowCommand,
+    },
 }
 
 #[derive(Args)]
@@ -37,10 +40,10 @@ pub struct CreateArgs {
     pub path: Option<PathBuf>,
 }
 
-#[derive(Args)]
-pub struct ShowArgs {
-    #[arg(short, long)]
-    pub today: bool,
+#[derive(Subcommand)]
+pub enum ShowCommand {
+    Today,
+    Yesterday,
 }
 
 pub fn parse_command() -> Result<(), Box<dyn Error>> {
@@ -57,8 +60,8 @@ pub fn parse_command() -> Result<(), Box<dyn Error>> {
         Commands::Create(args) => {
             createdir::logic_create(args)?;
         }
-        Commands::Show(args) => {
-            show::logic_show(args)?;
+        Commands::Show{command} => {
+            show::logic_show(command)?;
         }
     }
     Ok(())
