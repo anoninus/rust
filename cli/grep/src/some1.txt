@@ -1,0 +1,8 @@
+hello 
+^[[A
+^[[j
+
+hello 
+wlong
+
+hello
