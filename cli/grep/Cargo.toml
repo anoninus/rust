@@ -4,3 +4,10 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+anyhow = "1.0.102"
+crossbeam-channel = "0.5.15"
+crossterm = "0.29.0"
+ignore = "0.4.25"
+ratatui = { version = "0.30.0", features = ["crossterm"] }
+rayon = "1.11.0"
+regex = "1.12.3"
